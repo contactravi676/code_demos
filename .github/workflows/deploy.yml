@@ -3,28 +3,39 @@ name: CI/CD for Employee Service
 on:
   workflow_dispatch:
 
+# Required for OIDC authentication
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
     steps:
+      # Step 1: Checkout the repo
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # Step 2: Configure AWS credentials using OIDC
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::154534185443:role/Github_EKS_Deploy_Role
           aws-region: ap-southeast-2
 
+      # Step 3: Install kubectl
       - name: Install kubectl
         uses: azure/setup-kubectl@v4
         with:
-          version: 'v1.27.0'  # or 'latest'
+          version: 'v1.27.0'  # can be changed to latest
 
-      - name: Update kubeconfig for EKS
+      # Step 4: Update kubeconfig to point to EKS cluster
+      - name: Update kubeconfig
         run: |
           aws eks update-kubeconfig --name employee-cluster --region ap-southeast-2
 
+      # Step 5: Deploy your applications to EKS
       - name: Deploy application
         run: |
           kubectl apply -f employees/k8s/dynamodb-deployment.yaml
