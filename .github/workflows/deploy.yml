@@ -50,7 +50,12 @@ jobs:
           echo "${{ env.KUBE_CONFIG_DATA }}" | base64 --decode > kubeconfig
           export KUBECONFIG=kubeconfig
 
-      # 7. Apply Kubernetes manifests
+      # 7. Test connection
+      - name: Test Connection
+        run: |
+          kubectl get nodes
+
+      # 8. Apply Kubernetes manifests
       - name: Deploy to EKS
         run: |
           kubectl apply -f employees/k8s/
