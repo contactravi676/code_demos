@@ -16,10 +16,14 @@ jobs:
           role-to-assume: arn:aws:iam::154534185443:role/Github_EKS_Deploy_Role
           aws-region: ap-southeast-2
 
-      - name: Setup AWS EKS
-        uses: aws-actions/setup-aws-eks@main
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v4
         with:
-          cluster-name: employee-cluster
+          version: 'v1.27.0'  # or 'latest'
+
+      - name: Update kubeconfig for EKS
+        run: |
+          aws eks update-kubeconfig --name employee-cluster --region ap-southeast-2
 
       - name: Deploy application
         run: |
