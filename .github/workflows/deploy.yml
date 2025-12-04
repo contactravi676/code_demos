@@ -53,4 +53,4 @@ jobs:
       # 7. Apply Kubernetes manifests
       - name: Deploy to EKS
         run: |
-          kubectl apply -f k8s/
+          kubectl apply -f employees/k8s/
