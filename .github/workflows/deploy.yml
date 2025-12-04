@@ -47,12 +47,12 @@ jobs:
         with:
           version: 'v1.32.0'
 
-      # 7. Generate kubeconfig using AWS (THIS IS THE FIX!)
+      # 7. Generate kubeconfig using AWS
       - name: Update kubeconfig for EKS
         run: |
           aws eks update-kubeconfig \
             --region ap-southeast-2 \
-            --name <YOUR_EKS_CLUSTER_NAME>
+            --name employee-cluster
 
       # 8. Test connection
       - name: Test Connection
