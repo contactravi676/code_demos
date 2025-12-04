@@ -58,4 +58,4 @@ jobs:
       - name: Deploy to EKS
         run: |
           kubectl apply -f employees/k8s/dynamodb-deployment.yaml
-          kubectl apply -f employees/k8s/employee-deployment.yam
+          kubectl apply -f employees/k8s/employee-deployment.yaml
