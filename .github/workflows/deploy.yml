@@ -35,9 +35,9 @@ jobs:
 
      # 4. Install kubectl
       - name: Install Kubectl
-        uses: azure/setup-kubectl@v3
+        uses: azure/setup-kubectl@v4
         with:
-          version: 'v1.32.0'
+          version: 'v1.25.0'
 
       # 5. Configure AWS credentials using secrets
       - name: Configure AWS Credentials
