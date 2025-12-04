@@ -33,11 +33,6 @@ jobs:
         run: |
           docker push ${{ env.DOCKERHUB_USERNAME }}/dummy-projects:employee-service
 
-      - name: Show OIDC token
-        run: |
-          curl -H "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "$ACTIONS_ID_TOKEN_REQUEST_URL"
-
-
       # 5. Configure AWS credentials via OIDC
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
