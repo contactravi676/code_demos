@@ -1,9 +1,7 @@
-name: Deploy to EKS
+name: CI/CD for Employee Service
 
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
 
 jobs:
   deploy:
