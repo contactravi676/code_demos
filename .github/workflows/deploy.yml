@@ -1,61 +1,29 @@
-name: CI/CD for Employee Service
+name: Deploy to EKS
 
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - main
 
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
-
-    env:
-      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-      DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
-
     steps:
-      # 1. Checkout the repo
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      # 2. Login to Docker Hub
-      - name: Login to Docker Hub
-        uses: docker/login-action@v2
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          username: ${{ env.DOCKERHUB_USERNAME }}
-          password: ${{ env.DOCKERHUB_PASSWORD }}
-
-      # 3. Build Docker image
-      - name: Build Docker image
-        run: |
-          docker build -t ${{ env.DOCKERHUB_USERNAME }}/dummy-projects:employee-service ./employees
-
-      # 4. Push Docker image
-      - name: Push Docker image
-        run: |
-          docker push ${{ env.DOCKERHUB_USERNAME }}/dummy-projects:employee-service
-
-     # 4. Install kubectl
-      - name: Install Kubectl
-        uses: azure/setup-kubectl@v4
-        with:
-          version: 'v1.25.0'
-
-      # 5. Configure AWS credentials using secrets
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: arn:aws:iam::154534185443:role/Github_EKS_Deploy_Role
           aws-region: ap-southeast-2
 
-      
+      - name: Setup AWS EKS
+        uses: aws-actions/setup-aws-eks@v1
+        with:
+          cluster-name: employee-cluster
 
-      # 8. Update kubeconfig for EKS
-      - name: Update kubeconfig
-        run: |
-          aws eks update-kubeconfig --name employee-cluster --region ap-southeast-2
-
-      # 9. Deploy to EKS
-      - name: Deploy to EKS
+      - name: Deploy application
         run: |
           kubectl apply -f employees/k8s/dynamodb-deployment.yaml
           kubectl apply -f employees/k8s/employee-deployment.yaml
