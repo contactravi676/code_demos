@@ -1,0 +1,56 @@
+name: CI/CD for Employee Service
+
+on:
+  #push:
+    #branches:
+      #- main
+  workflow_dispatch:
+  
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
+      KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA }}
+
+    steps:
+      # 1. Checkout the repo
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # 2. Login to Docker Hub
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ env.DOCKERHUB_USERNAME }}
+          password: ${{ env.DOCKERHUB_PASSWORD }}
+
+      # 3. Build Docker image
+      - name: Build Docker image
+        run: |
+          docker build -t ${{ env.DOCKERHUB_USERNAME }}/employee-service:latest ./employee
+
+      # 4. Push Docker image
+      - name: Push Docker image
+        run: |
+          docker push ${{ env.DOCKERHUB_USERNAME }}/employee-service:latest
+
+      # 5. Setup kubectl
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'v1.32.0'
+
+      # 6. Configure kubeconfig
+      - name: Configure kubeconfig
+        run: |
+          echo "${{ env.KUBE_CONFIG_DATA }}" | base64 --decode > kubeconfig
+          export KUBECONFIG=kubeconfig
+
+      # 7. Apply Kubernetes manifests
+      - name: Deploy to EKS
+        run: |
+          kubectl apply -f k8s/
