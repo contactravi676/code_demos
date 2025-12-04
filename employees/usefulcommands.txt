@@ -1,0 +1,32 @@
+docker run -d -p 8000:8000 --name dynamodb --network kafka-net amazon/dynamodb-local -jar DynamoDBLocal.jar -inMemory -sharedDb
+
+aws dynamodb list-tables --endpoint-url http://localhost:8000 --region ap-southeast-2
+
+aws dynamodb scan --table-name Employees --endpoint-url http://localhost:8000 --region ap-southeast-2
+
+docker run -d --name zookeeper --network kafka-net -e ZOOKEEPER_CLIENT_PORT=2181 confluentinc/cp-zookeeper:7.4.0
+
+
+# Run Kafka
+#docker run -d --name kafka -p 9092:9092 -e KAFKA_BROKER_ID=1 -e KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181 -e KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://localhost:9092 -e KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1 -e KAFKA_AUTO_CREATE_TOPICS_ENABLE=true --link zookeeper confluentinc/cp-kafka:7.5.0
+
+docker run -d --name kafka --network kafka-net -p 9092:9092 -e KAFKA_BROKER_ID=1 -e KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181 -e KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://localhost:9092 -e KAFKA_LISTENERS=PLAINTEXT://0.0.0.0:9092 -e KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1 confluentinc/cp-kafka:7.4.0
+
+
+docker exec kafka kafka-topics --create --topic employee --bootstrap-server localhost:9092 --partitions 1 --replication-factor 1
+
+docker exec -i kafka bash -c "printf 'hello from docker kafka\n' | kafka-console-producer --broker-list kafka:9092 --topic my-topic"
+
+docker exec kafka kafka-console-consumer --bootstrap-server kafka:9092 --topic my-topic --from-beginning --timeout-ms 10000
+
+docker run -d --name sonarqube -p 9000:9000 -e SONAR_ES_BOOTSTRAP_CHECKS_DISABLE=true sonarqube:latest
+
+
+clean verify sonar:sonar -Dsonar.projectKey=employees -Dsonar.host.url=http://localhost:9000 -Dsonar.login=sqa_2340cb9d1737355b476b6a6c8c5dbf77de5010e5
+
+docker build -t employee-service:latest .
+
+docker run --name employee-service --network kafka-net -e DYNAMODB_ENDPOINT=http://dynamodb:8000 -e KAFKA_BOOTSTRAP_SERVERS=kafka:9092 -p 8008:8008 employee-service:latest
+
+
+

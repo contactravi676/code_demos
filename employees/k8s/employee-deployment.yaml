@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: employee-service
+  namespace: employees-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: employee-service
+  template:
+    metadata:
+      labels:
+        app: employee-service
+    spec:
+      containers:
+        - name: employee-service
+          image: 832143/dummy-projects:employee-service
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8008
+          env:
+            - name: DYNAMODB_ENDPOINT
+              value: http://dynamodb:8000
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: employee-service
+  namespace: employees-app
+spec:
+  selector:
+    app: employee-service
+  ports:
+    - port: 8008
+      targetPort: 8008
+  type: LoadBalancer
