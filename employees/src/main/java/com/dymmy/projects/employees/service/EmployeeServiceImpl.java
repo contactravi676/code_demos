@@ -45,7 +45,6 @@ public class EmployeeServiceImpl implements EmployeeService {
 			return emp;
 		}
 
-		// Update fields (only the ones you want to allow)
 		existing.setName(emp.getName());
 		existing.setDepartment(emp.getDepartment());
 		existing.setEmail(emp.getEmail());
